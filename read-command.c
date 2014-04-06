@@ -1,30 +1,26 @@
 // UCLA CS 111 Lab 1 command reading
 
-#include "alloc.h" //NOTE REMOVE FOR FINAL THING
 #include "command.h"
+#include "stack.h"
 #ifndef CMI
 #define CMI
 	#include "command-internals.h"
 #endif
-#include "stack.h"
-//#include <error.h>
-#include "impread-command.c"
+#include <error.h>
+#include "impread-command.h"
 
 struct commandNode{
 	struct command* command; //stuct command* defined in command-internals.h 
 	struct commandNode *next;
 };
 
-typedef struct command command;
 typedef struct CharStack OperatorStack;
-typedef struct CommandStack CommandStack;
+
 
 typedef struct command_stream{
 	struct commandNode *head;
 	struct commandNode *tail;
 } command_stream;
-/* Took care of - FIXME: Define the type 'struct command_stream' here.  This should
-   complete the incomplete type declaration in command.h.  */
 
 /*
 	Function declarations
@@ -34,7 +30,7 @@ int prec(char op);
 void evaluateOperator(OperatorStack *opStack, CommandStack *cmStack, char newOperator);
 command combineCommand(const command *firstCommand, const command *secondCommand, char newOperator);
 void checkWordForRealloc(const int *charCount, int *cPerWord, char* word);
-void checkMultWordsForRealloc(int *wordCount, const int *charCount, int *numWords, int *cPerWord, char** word);
+void checkMultWordsForRealloc(const int *wordCount, const int *charCount, int *numWords, int *cPerWord, char** word);
 void clearBuffer(int *charCount, int *wordCount, int *numWords, int *cPerWord, char** buffer);
 
 command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_next_byte_argument){
@@ -60,7 +56,8 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
   char** buffer = checked_malloc(sizeof(char*));
 
   buffer = checked_malloc(sizeof(char*) * numWords);
-  for(int i = 0; i < numWords; i++){
+  int i;
+  for(i = 0; i < numWords; i++){
     buffer[i] = checked_malloc(sizeof(char) * cPerWord);
   }
   
@@ -69,6 +66,7 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
 
   bool readNextByte;
   int nextChar;
+  //BROOKE: End case for when the loop is done, creating nodes (each of which holds a complete command), printing
   while (currChar != '\0'){
 	  readNextByte = false;
 	  if (isNormal(currChar)){
@@ -126,7 +124,7 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
 		  c.output = NULL;
 		  c.u.word = buffer;
 		  c.type = SIMPLE_COMMAND;
-		  push(cmStack, c);
+		  cmdPush(cmStack, c);
 
 		  clearBuffer(charCount, wordCount, numWords, cPerWord, buffer);
 
@@ -138,7 +136,7 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
 				  topCommand.input = word;
 			  else
 				  topCommand.output = word;
-			  push(cmStack, topCommand);
+			  cmdPush(cmStack, topCommand);
 
 			  readNextByte = true;
 		  }
@@ -193,7 +191,8 @@ void clearBuffer(int *charCount, int *wordCount, int *numWords, int *cPerWord, c
 	numWords = 8;
 	cPerWord = 8;
 	buffer = checked_malloc(sizeof(char*) * (*numWords));
-	for (int i = 0; i < *numWords; i++){
+	int i;
+	for (i = 0; i < *numWords; i++){
 		buffer[i] = checked_malloc(sizeof(char) * (*cPerWord));
 	}
 }
@@ -241,7 +240,7 @@ void evaluateOperator(OperatorStack *opStack, CommandStack *cmStack, char newOpe
 	subShellCommand->input = NULL;
 	subShellCommand->output = NULL;
 	cmdPop(cmStack, subShellCommand->u.subshell_command);
-	cmdPush(cmStack, &subShellCommand);
+	cmdPush(cmStack, *subShellCommand);
   }
   else{
 	char topOperator;
@@ -334,7 +333,8 @@ void checkMultWordsForRealloc(const int *wordCount, const int *charCount, int *n
 	  go through and realloc each word to be the new size
 	*/
 	*cPerWord *= 2;
-	for(int i = 0; i < *numWords; i++){
+	int i;
+	for(i = 0; i < *numWords; i++){
 	  char* tmp = checked_realloc(word[i], sizeof(char) * (*cPerWord));
 		word[i] = tmp;
 	}

@@ -1,13 +1,13 @@
 #include <stdio.h>
-typedef enum {false=0, true=1} bool;
-bool isNormal(char c)
+
+int isNormal(char c)
 {
         if (c >= 'A' && c <= 'Z' )
-                return true;
+                return 1;
         else if (c >='a' && c <='z')
-                return true;
+                return 1;
         else if (c >= '0' && c <= '9')
-                return true;
+                return 1;
         else {
           switch (c) {
             case '!':
@@ -21,47 +21,47 @@ bool isNormal(char c)
                 case '@':
                 case '^':
                 case '_':
-                        return true;
+                        return 1;
                 default:
-                        return false;
+                        return 0;
           }
         }
 }
 
 
 
-bool validComment(char c) {
+int validComment(char c) {
 
 
 }
 
-bool isOperator(char c) {
+int isOperator(char c) {
 	switch(c) {
 		case ';': 
-			return true;
+			return 1;
 			break;
 		case '|':
-			return true;
+			return 1;
 			break;
 		case '&':
-			return true;
+			return 1;
 			break;
 		case '(':
-			return true;
+			return 1;
 			break;
 		case ')':
-			return true;
+			return 1;
 			break;
 		default:
-			return false;
+			return 0;
 			break;
 	}
 }
 
-bool isRedirect(char c) {
+int isRedirect(char c) {
 	if (c == '<' || c == '>')
-		return true;
+		return 1;
 	else
-		return false;
+		return 0;
 }
 

@@ -1,11 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+//#include <string.h>
 #ifndef CMI
 #define CMI
 	#include "command-internals.h"
 #endif
 
+typedef struct command command;
 //typedef enum { false = 0, true = 1 } bool;
 
 typedef struct {
