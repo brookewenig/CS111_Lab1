@@ -1,5 +1,7 @@
 #include "commandstack.h"
 
+//Awesome 
+
 CommandStack *newCommandStack(unsigned stackLen) { 
     CommandStack *stack = calloc(1,sizeof(CommandStack)); 
     stack->stackData = calloc(stackLen+1,sizeof(*(stack->stackData))); 
