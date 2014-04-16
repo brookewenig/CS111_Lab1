@@ -71,7 +71,7 @@ void cmdDeleteStack(CommandStack *stack) {
 
 int cmdPush(CommandStack *stack, command c) { 
     if (cmdStackLen(stack) < cmdStackMaxSize(stack)) { 
-        *(++stack->top) = c;
+        (*(++stack->top)) = c; 
         return 1; 
     } else { 
         return 0; 
@@ -80,9 +80,7 @@ int cmdPush(CommandStack *stack, command c) {
 
 int cmdPop(CommandStack *stack, command *c) { 
     if (stack->top != stack->stackData) { 
-	  *c = *(stack->top--); 
-	  //*c = stack->top;
-	  //stack->top--;
+        *c = *(stack->top--); 
         return 1; 
     } else { 
         return 0; 
