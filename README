@@ -8,3 +8,7 @@ Our implementation includes an operator stack and command stack, numerous helper
 For 1B:
 
 Once again, we did pair programming. Our test cases run smoothly for a variety of input and combinations of input. We found a few bugs in our 1A part, such as not initializing the status for all commands, and not setting all of our status variables properly. We are using a recursive model that breaks down all commands into their simple command components and executes those commands. 
+
+For 1C:
+
+We fixed some various bugs in our previous implementation such as some reallocation issues when a command had more words than we initially allocated space for. We added multithreading functionality and altered our execute_command function to correctly handle the case of an 'exec' command.
