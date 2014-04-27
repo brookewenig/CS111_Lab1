@@ -4,3 +4,7 @@ Brooke Wenig, 604177148
 We did pair programming for the majority of the project. It passes the test cases provided, but did not create further test cases. For those test cases provided, it acts robustly.
 
 Our implementation includes an operator stack and command stack, numerous helper functions, and a buffer that goes through and grabs the next byte. At the beginning we faced many problems with memory addresses, as we were not mallocing everything that we needed later, but have fixed that, and so our program runs smoothly. 
+
+For 1B:
+
+Once again, we did pair programming. Our test cases run smoothly for a variety of input and combinations of input. We found a few bugs in our 1A part, such as not initializing the status for all commands, and not setting all of our status variables properly. We are using a recursive model that breaks down all commands into their simple command components and executes those commands. 

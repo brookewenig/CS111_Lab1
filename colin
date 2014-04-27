@@ -1,0 +1,1 @@
+(cat < test.tx) < test.tx

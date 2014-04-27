@@ -58,12 +58,12 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
  
   char currChar = (char)get_next_byte(get_next_byte_argument);
   char prevChar = '~';
-  buffer = (char**)malloc(sizeof(char*));
+  //buffer = (char**)malloc(sizeof(char*));
 
-  buffer = malloc(sizeof(char*) * numWords);
+  buffer = (char**)malloc(sizeof(char*) * numWords);
   int i;
   for(i = 0; i < numWords; i++){
-    buffer[i] = malloc(sizeof(char) * cPerWord);
+    buffer[i] = (char*)malloc(sizeof(char) * cPerWord);
   } //Moved to outside of function
   
   CommandStack *cmStack = newCommandStack(100);
@@ -117,6 +117,7 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
 		  c->input = NULL;
 		  c->output = NULL;
 		  c->u.word = buffer;
+		  c->status = -1;
 		  c->type = SIMPLE_COMMAND;
 		  cmdPush(cmStack, *c);
 		
@@ -136,8 +137,8 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
 		  command *com = combineCommand(firstCommand,secondCommand,currOp);
 		  cmdPush(cmStack, *com);
 		}
-		commandNode *next = malloc(sizeof(commandNode));
-		next->command = malloc(sizeof(command));
+		commandNode *next = (commandNode*)malloc(sizeof(commandNode));
+		next->command = (command*)malloc(sizeof(command));
 		cmdPop(cmStack, next->command);
 		next->next = NULL;
 		if(cStream->size > 1){
@@ -160,7 +161,7 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
 			error(1,0,"%d: Bad stuff", numLines);
 		  }
 		  else{
-			int foo = 0;
+			//int foo = 0;
 		  }
 	  }
 	  else if (isNormal(currChar)){
@@ -184,7 +185,7 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
 		 else if (prevChar == ' '){
 		  wordCount++;
 		  charCount = 0;
-		buffer = checkMultWordsForRealloc(&wordCount, &charCount, &numWords, &cPerWord, buffer);
+		  buffer = checkMultWordsForRealloc(&wordCount, &charCount, &numWords, &cPerWord, buffer);
 		  buffer[wordCount][charCount] = currChar;
 		  charCount++;
 		  cmdStatus = NONEMPTY;
@@ -198,11 +199,12 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
 		}
 	  }
 	  else if (isOperator(currChar)){
-		if(recentNewLine)
+		if(recentNewLine && currChar != '(' && currChar != ')')
 		  error(1,0,"%d: Newline in a non valid location", numLines); 
 		if(buffStatus == NONEMPTY){
 		  command *c = (command*)malloc(sizeof(command));
 		  c->input = NULL;
+		  c->status = -1;
 		  c->output = NULL;
 		  c->u.word = buffer;
 		  cmdStatus = EMPTY;
@@ -238,6 +240,9 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
 		  case ')':
 			  newOperator = ')';
 			  break;
+		  case ';':
+			newOperator = ';';
+			break;
 		  }
 
 		  evaluateOperator(opStack, cmStack, newOperator);
@@ -292,6 +297,7 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
   if(buffStatus == NONEMPTY){//stackLen(opStack) == 0 && buffStatus == NONEMPTY){
 	command *c = (command*)malloc(sizeof(command));
 	c->input = NULL;
+	c->status = -1;
 	c->output = NULL;
 	//int i;	
 	//c->u.word = (char**)calloc(1, sizeof(char*) * (numWords));
@@ -327,8 +333,8 @@ command_stream_t make_command_stream (int (*get_next_byte) (void *), void *get_n
   }
   commandNode *tail; //Brooke: just changed from commandNode to commandNode*
 //TODO: need assign type to tail.command?
-  tail = malloc(sizeof(commandNode));	
-  tail->command = malloc(sizeof(command));
+  tail = (commandNode*)malloc(sizeof(commandNode));	
+  tail->command = (command*)malloc(sizeof(command));
   cmdPop(cmStack, tail->command);
   tail->next = NULL;
   if(cStream->size > 1){
@@ -371,6 +377,8 @@ char* getWord(int (*get_next_byte) (void *), void *get_next_byte_argument, char 
 	}
   }
   if (isNormal(prevChar)){
+	*endChar = currChar;
+	*secondToLast = prevChar;
 	  return miniBuffer;
   }
   return NULL;
@@ -441,8 +449,8 @@ void evaluateOperator(CharStack *opStack, CommandStack *cmStack, char newOperato
 	//	error(1,0,"Paren mismatch!", "Cool Program");
 	}
 	pop(opStack, &topOperator);
-	command *subShellCommand = malloc(sizeof(command));
-	subShellCommand->u.subshell_command = malloc(sizeof(command));
+	command *subShellCommand = (command*)malloc(sizeof(command));
+	subShellCommand->u.subshell_command = (command*)malloc(sizeof(command));
 	subShellCommand->status = -1;
 	subShellCommand->type = SUBSHELL_COMMAND;
 	subShellCommand->input = NULL;
@@ -503,6 +511,7 @@ command* combineCommand(command *firstCommand, command *secondCommand, char newO
   c->u.command[0] = firstCommand;
   c->u.command[1] = secondCommand;
   c->input = NULL;
+  c->status = -1;
   c->output= NULL;
   return c;
 }
@@ -512,17 +521,22 @@ char* checkWordForRealloc(const int *charCount, int *cPerWord, char* word){
 	if (*charCount >= *cPerWord){
 		//If we have more words than we initially allocated for, realloc the words
 		*cPerWord *= 2;
-		char* tmp = realloc(word, sizeof(char) * (*cPerWord));
+		char* tmp = (char*)realloc(word, sizeof(char) * (*cPerWord));
 		word = tmp;
 	}
 	return word;
 }
 char** checkMultWordsForRealloc(const int *wordCount, const int *charCount, int *numWords, int *cPerWord, char** word){
-  if(*wordCount >= *numWords){
+  if(*wordCount >= *numWords-1){
 	  //If we have more words than we initially allocated for, realloc the words
-	  *numWords *= 2;
-	  char** tmp = realloc(word, sizeof(char*) * (*numWords));
-	  word = tmp;
+	int old = *wordCount;
+	*numWords *= 2;
+	char** tmp = (char**)realloc((char**)word, sizeof(char*) * (*numWords));
+	word = tmp;
+	int i;
+	for(i = old; i < *numWords; i++){
+	  word[i] = (char*)malloc(sizeof(char) * (*cPerWord));
+	}
   }
   if(*charCount >= *cPerWord){
 	/*
@@ -532,7 +546,7 @@ char** checkMultWordsForRealloc(const int *wordCount, const int *charCount, int 
 	*cPerWord *= 2;
 	int i;
 	for(i = 0; i < *numWords; i++){
-	  char* tmp = realloc(word[i], sizeof(char) * (*cPerWord));
+	  char* tmp = (char*)realloc(word[i], sizeof(char) * (*cPerWord));
 		word[i] = tmp;
 	}
   }
@@ -550,4 +564,8 @@ read_command_stream (command_stream_t s)
 	return current->command;
   }
   return NULL;
+}
+
+int getCommandStreamSize(command_stream_t s){
+  return s->size;
 }
